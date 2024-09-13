@@ -31,6 +31,8 @@ class ObjectReader:
         self.version2 = assets_file.header.version
         self.platform = assets_file.target_platform
         self.build_type = assets_file.build_type
+        # TuanJie Engine
+        self.isTuanJie = 't' in assets_file.unity_version
 
         header = assets_file.header
         types = assets_file.types

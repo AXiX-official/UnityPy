@@ -126,12 +126,20 @@ class Texture2D(Texture):
     def __init__(self, reader):
         super().__init__(reader=reader)
         version = self.version
+        # weather the file is a TuanJie file
+        self.isTuanJie = reader.isTuanJie
 
         self.m_Width = reader.read_int()
         self.m_Height = reader.read_int()
         self.m_CompleteImageSize = reader.read_int()
         if version >= (2020, 1):  # 2020.1 and up
             self.m_MipsStripped = reader.read_int()
+        if self.isTuanJie:  # TuanJie
+            self.m_WebStreaming = reader.read_int()
+            self.m_PriorityLevel = reader.read_int()
+            self.m_UploadedMode = reader.read_int()
+            self.size = reader.read_int()
+            self.path = reader.read_aligned_string()
         self.m_TextureFormat = TextureFormat(reader.read_int())
         if version < (5, 2):  # 3.4.0 - 5.1.5f1
             self.m_MipMap = reader.read_boolean()
@@ -174,7 +182,7 @@ class Texture2D(Texture):
             self.m_LightmapFormat = reader.read_int()
         if version >= (3, 5):  # 3.5 and up
             self.m_ColorSpace = reader.read_int()
-        if version >= (2020, 2):  # 2020.2 and up
+        if version >= (2020, 2) or self.isTuanJie:  # 2020.2 and up or TuanJie
             self.m_PlatformBlob = reader.read_byte_array()
             reader.align_stream()
 
@@ -202,6 +210,12 @@ class Texture2D(Texture):
         writer.write_int(self.m_CompleteImageSize)
         if version >= (2020,):  # 2020.1 and up
             writer.write_int(self.m_MipsStripped)
+        if self.isTuanJie:  # TuanJie
+            writer.write_int(self.m_WebStreaming)
+            writer.write_int(self.m_PriorityLevel)
+            writer.write_int(self.m_UploadedMode)
+            writer.write_int(self.size)
+            writer.write_aligned_string(self.path)
         writer.write_int(self.m_TextureFormat.value)
         if version < (5, 2):  # 5.2 down
             writer.write_boolean(self.m_MipMap)
@@ -228,7 +242,7 @@ class Texture2D(Texture):
             writer.write_boolean(self.m_IgnoreMipmapLimit)
             writer.align_stream()
             writer.write_aligned_string(self.m_MipmapLimitGroupName)
-        
+
         if (3,) <= version[:2] <= (5, 4):  # 3.0 - 5.4
             writer.write_boolean(self.m_ReadAllowed)  # 3.0 - 5.4
         if version >= (2018, 2):  # 2018.2 and up
@@ -244,7 +258,7 @@ class Texture2D(Texture):
             writer.write_int(self.m_LightmapFormat)
         if version >= (3, 5):  # 3.5 and up
             writer.write_int(self.m_ColorSpace)
-        if version >= (2020, 2):  # 2020.2 and up
+        if version >= (2020, 2) or self.isTuanJie:  # 2020.2 and up or TuanJie
             writer.write_byte_array(self.m_PlatformBlob)
             writer.align_stream()
 
